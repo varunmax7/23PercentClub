@@ -1,7 +1,7 @@
 # BUILD-STATE
 
 Last updated: 2026-08-31 by claude-opus-5 session
-Current phase: 6 can start next (2 still blocked — see Blockers)
+Current phase: 7 can start next (2 still blocked — see Blockers)
 Branch: main
 
 | Phase | Name | Status | Gate passed | Commit |
@@ -11,8 +11,8 @@ Branch: main
 | 2 | Port Existing Content | ⬜ | | |
 | 3 | Financial Tools | ✅ | 2026-08-31 | 2ffb7c8 |
 | 4 | Education Blogs | ✅ | 2026-08-31 | c5800d3 |
-| 5 | Money Basics | ✅ | 2026-08-31 | (this commit) |
-| 6 | Legends, Home, About, Disclosures | ⬜ | | |
+| 5 | Money Basics | ✅ | 2026-08-31 | 15c24ce |
+| 6 | Legends, Home, About, Disclosures | ✅ | 2026-08-31 | (this commit) |
 | 7 | SEO, Performance, Analytics | ⬜ | | |
 | 8 | Full QA & Compliance Audit | ⬜ | | |
 | 9 | Deploy & Handoff | ⬜ | | |
@@ -192,3 +192,69 @@ The case-study pattern from Phase 4 repeats here: no real lender, card,
 or insurer is named anywhere across the five pages (enforced by the new
 test above), consistent with §5.3's "explainer hub, not product
 comparison" framing.
+
+## Gate G6 result (Legends, Home, About, Disclosures)
+
+Prompted mid-phase by the user hitting a live 404 on `/learn` while
+browsing the dev server — confirmed this was simply the Phase 6 work not
+built yet (not a bug), then proceeded to build all of Phase 6, pushing
+each route live via the running dev server as it landed rather than
+batching everything to the end.
+
+**Legends**: extended `content.ts` with the same read/compile pattern as
+blog (`getAllLegends`, `getPublishedLegends`, `getLegendBySlug`). Authored
+Graham and Lynch fresh rather than porting existing content — there is no
+legacy site in this repo (Phase 2 is still blocked) so README §8's
+"port and re-theme" instruction doesn't apply; used only extremely
+well-documented biographical facts (Columbia Business School, *Security
+Analysis* 1934, *The Intelligent Investor*, Buffett as a student; Magellan
+Fund, *One Up On Wall Street*) and avoided any specific performance
+statistic that would need a source I don't have. Munger stub ships as
+`status: draft`. Draft-exclusion verified at three levels: unit
+(`tests/legends.test.ts` — `getPublishedLegends()` excludes Munger),
+e2e (index doesn't render "Charlie Munger"; the draft page itself is
+reachable for preview but carries `<meta name="robots" content="noindex">`),
+and visual (screenshot confirms only 2 cards on the index).
+
+**Home**: replaced the Phase 0 placeholder. The hero is a live, one-slider
+SIP projection (`HomeHero.tsx`, reusing `calculateSip` + `useCountUp` +
+`HeartbeatPulse` from Phase 1/3) rather than a static headline — the
+`frontend-design` skill still isn't loadable this session (plugin
+install needs a restart, same as Phase 1), so this follows the same
+inline reasoning: the hero should open with the most characteristic
+thing in the brand's world, which for this brand is the calculator
+interaction itself, not a slogan describing it. Added a `ComplianceNote`
+under the hero's projected number even though `compliance-check.ts`
+Rule 2 only scans `/tools/*` — README §0.4 "Always" applies the
+assumption-language rule to every projected number, not just ones an
+automated script happens to check.
+
+**About / Disclosures**: About states only founder facts already
+established in README §1/§6 (IIT Madras, NISM, Hyderabad, the mission
+line) — no invented biographical specifics. Disclosures renders all four
+calculator methodologies from `methodology.ts` via `<Expandable>` (same
+single-source guarantee as the tool pages) plus the full SEBI disclaimer
+and a data-sources statement.
+
+**Found and fixed a real component gap, not just a test issue**:
+`<Expandable>`'s title was a bare text node sharing a flex row with the
+chevron icon, making it structurally unaddressable — caught by a
+Playwright exact-text assertion, but it's a real DOM/testability
+improvement independent of the test, so fixed the component
+(`src/components/ui/Expandable.tsx`) rather than loosening the assertion.
+
+Also caught and fixed a genuine compliance false-positive rather than
+weakening the rule: the Lynch legend page's own critique of "invest in
+what you know" used the literal phrase "investment thesis" while
+*describing* the mistake, which tripped Rule 3. Reworded the sentence —
+per the compliance script's own stated philosophy, a false positive
+here is a ten-second rewrite, not a reason to narrow a rule that exists
+specifically to fail closed.
+
+`npm run verify` green (67 unit tests, up from 62). `npm run
+validate:content` and `npm run compliance` (29 rendered routes, 0
+violations) both clean. 34/34 Playwright e2e + a11y tests green,
+including zero critical axe violations on the home page and the
+legends index. Full build produces 31 routes. Visual pass (home
+desktop+mobile, legends index, a legend page, disclosures) sent to the
+founder.

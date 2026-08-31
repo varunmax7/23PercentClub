@@ -22,7 +22,7 @@ export function Expandable({
       open={defaultOpen}
     >
       <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 font-body text-sm font-medium text-sapphire">
-        {title}
+        <span>{title}</span>
         <span
           aria-hidden="true"
           className="text-slate transition-transform group-open:rotate-180"
