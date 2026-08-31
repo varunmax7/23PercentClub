@@ -13,6 +13,14 @@
   --color-slate: #5c6b7a;
   --color-success-green: #1d9a6c;
   --color-alert-amber: #c77700;
+  /*
+   * Text/icon-safe amber. Same hue as --color-alert-amber, darkened so
+   * small text clears WCAG AA 4.5:1 on white and off-white (the base
+   * amber only manages ~3:1 at 12px — axe correctly flags it). Use this
+   * for amber text and amber icons; keep the base token for swatches,
+   * borders, and background tints.
+   */
+  --color-alert-amber-text: #8f4f00;
   --color-border: #e1e8f0;
 }
 
@@ -25,6 +33,7 @@
   --color-slate: var(--color-slate);
   --color-success-green: var(--color-success-green);
   --color-alert-amber: var(--color-alert-amber);
+  --color-alert-amber-text: var(--color-alert-amber-text);
   --color-border: var(--color-border);
 
   --font-display: var(--font-outfit);
@@ -59,4 +68,24 @@
 
 .tabular-nums {
   font-variant-numeric: tabular-nums;
+}
+
+/*
+ * The result panel's one signature motion moment (README §3.3): the
+ * heartbeat line sweeps in once on mount. Zeroed under reduced-motion by
+ * the media query above.
+ */
+@keyframes pulse-sweep {
+  from {
+    stroke-dashoffset: var(--pulse-length, 240);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.pulse-sweep {
+  stroke-dasharray: var(--pulse-length, 240);
+  stroke-dashoffset: var(--pulse-length, 240);
+  animation: pulse-sweep 900ms ease-out forwards;
 }

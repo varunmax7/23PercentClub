@@ -198,16 +198,17 @@ The signature move for this brand is the **ECG-heartbeat-into-cross logo mark** 
   --off-white:     #F7FAFD;   /* section backgrounds, not stark white */
   --slate:         #5C6B7A;   /* secondary text */
   --success-green: #1D9A6C;   /* positive calculator output only — never for return "promises" */
-  --alert-amber:   #C77700;   /* compliance disclaimers, risk notes */
+  --alert-amber:   #C77700;   /* compliance disclaimers, risk notes — swatches/borders/background tints only, see below */
+  --alert-amber-text: #8F4F00; /* same hue, darkened — use for amber TEXT and amber ICONS on a light background */
   --border:        #E1E8F0;
 }
 ```
 
-Wire these into `tailwind.config.ts` as `theme.extend.colors` referencing the CSS variables, so class names (`bg-sapphire`, `text-ink`) and raw CSS stay in sync from one source.
+Wire these into the Tailwind theme referencing the CSS variables, so class names (`bg-sapphire`, `text-ink`) and raw CSS stay in sync from one source. (On this stack that's Tailwind v4's CSS-first `@theme inline` block in `src/app/globals.css` rather than `tailwind.config.ts` — see `BUILD-STATE.md` → Deviations.)
 
 **Semantic rules**
 - `--success-green` appears only on a computed positive delta. It never appears next to a projected/assumed return, because green + a future number reads as a promise.
-- `--alert-amber` is reserved for compliance and risk copy. Do not reuse it as a decorative accent.
+- `--alert-amber` is reserved for compliance and risk copy. Do not reuse it as a decorative accent. **Use `--alert-amber-text` wherever amber renders as text or an icon fill** — the base value fails WCAG AA contrast for small text (2.96–3.46:1 against off-white/white; 4.5:1 required), caught by the Phase 1 Gate's axe check. Keep `--alert-amber` for swatches, borders, and low-opacity background tints, where a text-contrast requirement doesn't apply.
 - `--bright-blue` is the only CTA color. One primary CTA per viewport.
 
 ### 3.2 Typography
