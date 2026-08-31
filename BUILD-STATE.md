@@ -1,15 +1,15 @@
 # BUILD-STATE
 
 Last updated: 2026-08-31 by claude-opus-5 session
-Current phase: 2 (blocked — see Blockers) / 3 or 4 can start next
+Current phase: 4, 5, or 6 can start next (2 still blocked — see Blockers)
 Branch: main
 
 | Phase | Name | Status | Gate passed | Commit |
 |---|---|---|---|---|
 | 0 | Scaffolding & Guardrails | ✅ | 2026-08-31 | ea87483 |
-| 1 | Design System & Components | ✅ | 2026-08-31 | (this commit) |
+| 1 | Design System & Components | ✅ | 2026-08-31 | 18a13e2 |
 | 2 | Port Existing Content | ⬜ | | |
-| 3 | Financial Tools | ⬜ | | |
+| 3 | Financial Tools | ✅ | 2026-08-31 | (this commit) |
 | 4 | Education Blogs | ⬜ | | |
 | 5 | Money Basics | ⬜ | | |
 | 6 | Legends, Home, About, Disclosures | ⬜ | | |
@@ -67,3 +67,30 @@ verified. Two real contrast defects were found and fixed during this Gate
 Deviations above. Visual pass via Playwright screenshots (desktop +
 mobile home, full gallery) confirms the Sapphire Blue system renders with
 no generic-SaaS-card defaults; screenshots sent to the founder.
+
+## Gate G3 result (Financial Tools)
+
+Compute engine (`src/lib/calculators.ts`) built and fully tested *before*
+any page existed, per §5.1's compute-before-UI rule: 42/42 unit tests
+green, **100% branch coverage** (`npm run test:coverage`). Step-up SIP at
+0% step-up is bit-identical to flat SIP (same `simulateMonthly` code path
+for both — not just approximately equal). All 4 calculator pages +
+`/tools` index built on top of the tested engine, sharing one
+`<CalculatorLayout>`. `npm run verify` green. `npm run compliance`: 9
+rendered routes, 0 violations — the illustrative-return caveat is present
+on every `/tools/*` route. Playwright e2e
+(`tests/e2e/calculators.spec.ts`): the on-screen SIP maturity value
+matches an independently-computed expected value to within ±₹1 (count-up
+animation rounding), compliance note present on all four calculators,
+step-up comparison callout shows a positive advantage, zero critical/
+serious axe violations. Visual pass (desktop + mobile screenshots of
+`/tools` index, all four calculators) sent to the founder.
+
+**Flagged for Phase 7, not blocking this Gate:** measured real gzipped JS
+for `/tools/sip-calculator` against a production server is **~237KB**,
+over the `<180KB` budget this README states in §9.3. Recharts is the
+majority of it (~140KB gzip across its two largest chunks). §8 Phase 3's
+own Gate G3 definition doesn't include the JS budget — that's Phase 7's
+Lighthouse gate — so this isn't a Phase 3 blocker, but Phase 7 needs to
+either lazy-load `<GrowthChart>`, swap to a lighter chart approach, or
+revise the §9.3 number; don't let Phase 7 discover this cold.
