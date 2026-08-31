@@ -1,7 +1,7 @@
 # BUILD-STATE
 
 Last updated: 2026-08-31 by claude-opus-5 session
-Current phase: 4, 5, or 6 can start next (2 still blocked — see Blockers)
+Current phase: 5 or 6 can start next (2 still blocked — see Blockers)
 Branch: main
 
 | Phase | Name | Status | Gate passed | Commit |
@@ -9,8 +9,8 @@ Branch: main
 | 0 | Scaffolding & Guardrails | ✅ | 2026-08-31 | ea87483 |
 | 1 | Design System & Components | ✅ | 2026-08-31 | 18a13e2 |
 | 2 | Port Existing Content | ⬜ | | |
-| 3 | Financial Tools | ✅ | 2026-08-31 | (this commit) |
-| 4 | Education Blogs | ⬜ | | |
+| 3 | Financial Tools | ✅ | 2026-08-31 | 2ffb7c8 |
+| 4 | Education Blogs | ✅ | 2026-08-31 | (this commit) |
 | 5 | Money Basics | ⬜ | | |
 | 6 | Legends, Home, About, Disclosures | ⬜ | | |
 | 7 | SEO, Performance, Analytics | ⬜ | | |
@@ -38,6 +38,16 @@ Branch: main
   the toolchain on a fresh scaffold.
 - Fonts use `next/font/google` for Outfit + Inter directly (README's intent);
   the scaffold's default Geist fonts were removed.
+- **Added `next-mdx-remote` (not named in README §2).** README's chosen
+  MDX deps (`@next/mdx`, `gray-matter`) solve MDX-as-page-routes and
+  frontmatter parsing respectively, but the architecture README itself
+  specifies — content in `src/content/blog/*.mdx`, read by slug via a
+  dynamic `[slug]` route, per §4.1/§6.3/§14 — needs a third piece: a
+  compiler that turns an MDX *string* into a React element at request/
+  build time. `next-mdx-remote/rsc` is the standard, actively-maintained
+  library for exactly that pattern in the App Router. No behavior change
+  this represents; it's the missing piece the stated architecture already
+  implied.
 - **Added `--color-alert-amber-text: #8F4F00`**, not in README §3.1. The
   locked `--alert-amber` (#C77700) fails WCAG AA contrast for small text —
   2.96:1 on off-white, 3.46:1 on white, both need 4.5:1 — caught by the
@@ -94,3 +104,46 @@ own Gate G3 definition doesn't include the JS budget — that's Phase 7's
 Lighthouse gate — so this isn't a Phase 3 blocker, but Phase 7 needs to
 either lazy-load `<GrowthChart>`, swap to a lighter chart approach, or
 revise the §9.3 number; don't let Phase 7 discover this cold.
+
+## Gate G4 result (Education Blogs)
+
+MDX pipeline built: `src/lib/content.ts` (`getAllPosts`, `getPublishedPosts`,
+`getPostsByCategory`, `paginatePosts`, `getPostBySlug` via
+`next-mdx-remote/rsc`'s `compileMDX`), frontmatter schemas centralised in
+`src/lib/content-schemas.ts` and shared by `scripts/validate-content.ts`
+and the test suite so they can't drift. `npm run validate:content` passes
+on all 7 posts. `npm run verify` green (69 unit tests total — 42 from
+Phase 3 + 13 content-validation + a few pre-existing — 100% pass).
+`npm run compliance`: 16 rendered routes, 0 violations across all 7 posts
+(no banned phrasing tripped).
+
+Shipped `/learn/blog` (paginated, category filter via URL param) and
+`/learn/blog/[slug]` (SSG via `generateStaticParams`, correct
+`generateMetadata` incl. `og:image`/`og:title` — verified against actual
+served HTML, not just the build log). All 7 rotation categories
+represented by real posts (not placeholders), four of which are the exact
+posts Phase 3's calculator CTAs were left pointing at generically —
+those `TODO(phase-4)` markers are now removed and link to real slugs,
+verified by e2e click-through.
+
+**Content discipline held to §11.3**: no fabricated statistics anywhere.
+The case-study post ("The IPO Everyone Wanted") is explicitly labelled a
+composite/illustrative pattern rather than citing unverifiable specific
+numbers about a named company — safer than guessing, and still teaches
+the pattern. Every post that states a figure carries at least one real,
+generic citation (SEBI, AMFI, RBI, Income Tax Act, NISM) — `sources[]`
+enforced by the schema's requireSources rule, which is intentionally
+blunt (any digit in a published post → needs a source) and caught even
+"23% Club" itself as a digit-bearing string once, which is correct
+behavior for a rule designed to fail closed.
+
+18/18 Playwright e2e + a11y tests green (10 calculator + 4 blog-specific +
+2 gallery, incl. zero critical axe violations on the blog index and a
+post page). Visual pass (index + 2 posts, including the flagship post's
+live `CalculatorEmbed` links into all four tools) sent to the founder.
+
+**Fixed in this Gate, not deferred:** `metadataBase` was unset, which
+silently resolved all OG image URLs against `localhost` in production —
+a real SEO defect, not a Phase 7 concern, so fixed immediately in the
+root layout using `NEXT_PUBLIC_SITE_URL` (already defined in `.env.example`
+since Phase 0).

@@ -164,7 +164,7 @@ The current site is static HTML/CSS/JS with a shared `data.js`. That was right f
 | Framework | **Next.js (App Router, TypeScript)** | `^14` | SSR/SSG for SEO on blog + tool pages, file-based routing matches the existing IA cleanly, huge ecosystem, deploys free-tier friendly |
 | Language | **TypeScript** `strict: true` | `^5` | Calculator math and 68-product data both benefit from types; strict mode is not optional |
 | Styling | **Tailwind CSS** + CSS variables for the Sapphire Blue tokens | `^3` | Fast to build, keeps design-system variables portable, avoids one-off CSS drift across 60+ pages |
-| Content | **MDX** in-repo (`src/content/**`) | `@next/mdx`, `gray-matter` | Zero infra cost initially; clean upgrade path to a headless CMS |
+| Content | **MDX** in-repo (`src/content/**`) | `gray-matter` for frontmatter, `next-mdx-remote/rsc` to compile MDX strings from `src/content/*` into React elements by slug (the content-collection pattern this README specifies — separate from `@next/mdx`'s page-route mechanism, which doesn't fit a dynamic `[slug]` route reading a data directory) | Zero infra cost initially; clean upgrade path to a headless CMS |
 | Calculators | Client-side TypeScript pure functions, unit-tested — **no server round-trip** | — | SIP/lumpsum/step-up/inflation math is deterministic. Instant results, no backend cost, works offline |
 | Charts | **Recharts** | `^2` | Lighter than D3, good enough for calculator output, themes cleanly with Tailwind tokens |
 | Market data | **TradingView embeddable widgets** (already integrated in `market.html`) | — | Carry over as-is, already working |
