@@ -143,3 +143,17 @@ export interface LegendFrontmatter {
   sources: string[];
   coverImage: string;
 }
+
+/**
+ * Money Basics topic frontmatter — README §5.3. Not formally specified
+ * in §6.3 (only blog/legends are); extended here in the same spirit.
+ * No status/draft: Gate G5 requires all five topics live together.
+ */
+export type MoneyBasicsTopicSlug = "loans" | "credit-cards" | "debt" | "taxes" | "insurance";
+
+export interface MoneyBasicsFrontmatter {
+  title: string;
+  topic: MoneyBasicsTopicSlug;
+  excerpt: string;
+  sources: string[];
+}

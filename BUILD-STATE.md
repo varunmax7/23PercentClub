@@ -1,7 +1,7 @@
 # BUILD-STATE
 
 Last updated: 2026-08-31 by claude-opus-5 session
-Current phase: 5 or 6 can start next (2 still blocked — see Blockers)
+Current phase: 6 can start next (2 still blocked — see Blockers)
 Branch: main
 
 | Phase | Name | Status | Gate passed | Commit |
@@ -10,8 +10,8 @@ Branch: main
 | 1 | Design System & Components | ✅ | 2026-08-31 | 18a13e2 |
 | 2 | Port Existing Content | ⬜ | | |
 | 3 | Financial Tools | ✅ | 2026-08-31 | 2ffb7c8 |
-| 4 | Education Blogs | ✅ | 2026-08-31 | (this commit) |
-| 5 | Money Basics | ⬜ | | |
+| 4 | Education Blogs | ✅ | 2026-08-31 | c5800d3 |
+| 5 | Money Basics | ✅ | 2026-08-31 | (this commit) |
 | 6 | Legends, Home, About, Disclosures | ⬜ | | |
 | 7 | SEO, Performance, Analytics | ⬜ | | |
 | 8 | Full QA & Compliance Audit | ⬜ | | |
@@ -147,3 +147,48 @@ silently resolved all OG image URLs against `localhost` in production —
 a real SEO defect, not a Phase 7 concern, so fixed immediately in the
 root layout using `NEXT_PUBLIC_SITE_URL` (already defined in `.env.example`
 since Phase 0).
+
+## Gate G5 result (Money Basics)
+
+Extended the content contracts for a third content type — `MoneyBasicsFrontmatter`
+in `types.ts`, `moneyBasicsSchema` in `content-schemas.ts` — deliberately
+*not* forced into the blog/legend shape (no status/draft; keys on `topic`
+not `slug`) since README §5.3 never specified a formal frontmatter
+contract for this one, unlike §6.3's blog/legends. `scripts/validate-content.ts`
+now checks `src/content/money-basics/*.mdx` too. `content.ts` gained
+`getMoneyBasicsTopics()` (fixed order: loans, credit-cards, debt, taxes,
+insurance) and `getMoneyBasicsTopic()`, sharing the same `compileMDX` +
+`mdxComponents` path as blog posts.
+
+Shipped `/learn/money-basics` (index) and all 5 topic pages, each
+following the fixed structure from §5.3. `npm run verify` green (62 unit
+tests, up from 55). `npm run validate:content` and `npm run compliance`
+(22 routes, 0 violations) both clean. New required test
+(`tests/money-basics-links.test.ts`) asserts every topic links ≥1
+`/tools/` page and ≥1 `/learn/blog/` post — plus an extra check (not
+explicitly required, added because it's cheap and exactly what Gate G5's
+"no product named as a recommendation" line means in practice) that no
+page names a specific lender, card, or insurer. 24/24 Playwright e2e +
+a11y tests green.
+
+**Held the line on §0.1 rule 4 (never invent financial data) under real
+pressure.** The tax page is where this mattered most: rather than stating
+specific 80C limits or slab thresholds I couldn't verify as current —
+which change with every Union Budget — every page writes around them
+("check the Income Tax Department's current figure") instead of guessing
+or leaving a dangling `[VERIFY:]` marker. This was a deliberate choice,
+not an oversight: a `[VERIFY:]` marker left in on a *published* page
+would have failed `compliance-check.ts` Rule 4 and blocked this Gate by
+its own design — the marker is for in-flight drafts, not a way to ship
+an unresolved claim. The one specific, dated fact stated directly (debt
+mutual funds losing indexation for units acquired on/after 1 April 2023,
+taxed at slab rate under Section 50AA) is pre-specified by name in
+README §5.3 itself and is a discrete historical legal change, not a
+drifting rate — cited to the Income Tax Act / Income Tax Department.
+`VERIFY-QUEUE.md` has zero rows as a direct result, satisfying Gate G5's
+requirement without needing to resolve anything after the fact.
+
+The case-study pattern from Phase 4 repeats here: no real lender, card,
+or insurer is named anywhere across the five pages (enforced by the new
+test above), consistent with §5.3's "explainer hub, not product
+comparison" framing.

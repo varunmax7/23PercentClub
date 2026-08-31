@@ -38,9 +38,53 @@ export const legendSchema = z.object({
   coverImage: z.string().min(1),
 });
 
+export const MONEY_BASICS_TOPICS = ["loans", "credit-cards", "debt", "taxes", "insurance"] as const;
+
+export const moneyBasicsSchema = z.object({
+  title: z.string().min(1),
+  topic: z.enum(MONEY_BASICS_TOPICS),
+  excerpt: z.string().max(200),
+  sources: z.array(z.string()).default([]),
+});
+
 export interface ContentError {
   file: string;
   message: string;
+}
+
+/**
+ * Money Basics topics have no draft/status concept (Gate G5 requires all
+ * five live together) and key on `topic`, not `slug` — a lighter sibling
+ * to validateEntry rather than forcing them into the same generic shape.
+ */
+export function validateMoneyBasicsEntry(
+  fileLabel: string,
+  data: unknown,
+  rawBody: string,
+  expectedTopic: string,
+): ContentError[] {
+  const errors: ContentError[] = [];
+  const result = moneyBasicsSchema.safeParse(data);
+
+  if (!result.success) {
+    for (const issue of result.error.issues) {
+      errors.push({ file: fileLabel, message: `${issue.path.join(".")}: ${issue.message}` });
+    }
+    return errors;
+  }
+
+  if (result.data.topic !== expectedTopic) {
+    errors.push({
+      file: fileLabel,
+      message: `topic "${result.data.topic}" does not match filename "${expectedTopic}"`,
+    });
+  }
+
+  if (/\d/.test(rawBody) && result.data.sources.length === 0) {
+    errors.push({ file: fileLabel, message: "page contains a figure but sources[] is empty" });
+  }
+
+  return errors;
 }
 
 /**

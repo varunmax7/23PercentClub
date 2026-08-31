@@ -3,11 +3,12 @@ import { join, basename } from "node:path";
 import matter from "gray-matter";
 import { compileMDX } from "next-mdx-remote/rsc";
 import type { ReactElement } from "react";
-import type { BlogFrontmatter, BlogCategory } from "./types";
-import { blogSchema } from "./content-schemas";
+import type { BlogFrontmatter, BlogCategory, MoneyBasicsFrontmatter, MoneyBasicsTopicSlug } from "./types";
+import { blogSchema, moneyBasicsSchema, MONEY_BASICS_TOPICS } from "./content-schemas";
 import { mdxComponents } from "@/components/mdx/MdxComponents";
 
 const BLOG_DIR = join(process.cwd(), "src", "content", "blog");
+const MONEY_BASICS_DIR = join(process.cwd(), "src", "content", "money-basics");
 
 interface RawPost {
   frontmatter: BlogFrontmatter;
@@ -77,6 +78,65 @@ export interface CompiledPost {
 
 export async function getPostBySlug(slug: string): Promise<CompiledPost | null> {
   const raw = readAllRawPosts().find((p) => p.frontmatter.slug === slug);
+  if (!raw) return null;
+
+  const { content } = await compileMDX({
+    source: raw.body,
+    options: { parseFrontmatter: false },
+    components: mdxComponents,
+  });
+
+  return { frontmatter: raw.frontmatter, content };
+}
+
+// ---- Money Basics ----------------------------------------------------------
+
+interface RawMoneyBasicsTopic {
+  frontmatter: MoneyBasicsFrontmatter;
+  body: string;
+}
+
+function readAllRawMoneyBasicsTopics(): RawMoneyBasicsTopic[] {
+  if (!existsSync(MONEY_BASICS_DIR)) return [];
+
+  return readdirSync(MONEY_BASICS_DIR)
+    .filter((entry) => entry.endsWith(".mdx"))
+    .map((entry) => {
+      const raw = readFileSync(join(MONEY_BASICS_DIR, entry), "utf-8");
+      const { data, content } = matter(raw);
+      const result = moneyBasicsSchema.safeParse(data);
+
+      if (!result.success) {
+        const messages = result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
+        throw new Error(`Invalid frontmatter in ${entry}: ${messages}`);
+      }
+
+      const expectedTopic = basename(entry, ".mdx");
+      if (result.data.topic !== expectedTopic) {
+        throw new Error(`${entry}: topic "${result.data.topic}" does not match filename "${expectedTopic}"`);
+      }
+
+      return { frontmatter: result.data, body: content };
+    });
+}
+
+const TOPIC_ORDER: readonly MoneyBasicsTopicSlug[] = MONEY_BASICS_TOPICS;
+
+/** Fixed order per README §5.3: loans, credit cards, debt, taxes, insurance. */
+export function getMoneyBasicsTopics(): MoneyBasicsFrontmatter[] {
+  const all = readAllRawMoneyBasicsTopics().map((t) => t.frontmatter);
+  return TOPIC_ORDER.map((slug) => all.find((t) => t.topic === slug)).filter(
+    (t): t is MoneyBasicsFrontmatter => t !== undefined,
+  );
+}
+
+export interface CompiledMoneyBasicsTopic {
+  frontmatter: MoneyBasicsFrontmatter;
+  content: ReactElement;
+}
+
+export async function getMoneyBasicsTopic(topic: string): Promise<CompiledMoneyBasicsTopic | null> {
+  const raw = readAllRawMoneyBasicsTopics().find((t) => t.frontmatter.topic === topic);
   if (!raw) return null;
 
   const { content } = await compileMDX({
