@@ -74,7 +74,10 @@ export function InflationForm() {
         </ResultPanel>
       }
       belowFold={
-        <BlogCta teaser="A 12% return sounds good until inflation is 7% — what your real, after-inflation return actually is." />
+        <BlogCta
+          teaser="A 12% return sounds good until inflation is 7% — what your real, after-inflation return actually is."
+          href="/learn/blog/what-a-fixed-deposit-taught-me-about-inflation"
+        />
       }
     />
   );

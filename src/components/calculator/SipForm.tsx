@@ -69,7 +69,10 @@ export function SipForm() {
         </ResultPanel>
       }
       belowFold={
-        <BlogCta teaser="Why most investors stop their SIP at the worst possible time — and how to build in the discipline the market will keep testing." />
+        <BlogCta
+          teaser="Why most investors stop their SIP at the worst possible time — and how to build in the discipline the market will keep testing."
+          href="/learn/blog/why-most-investors-stop-sip"
+        />
       }
     />
   );

@@ -1,0 +1,98 @@
+/**
+ * MDX frontmatter contracts — README §6.3. Single source shared by the
+ * build-time CI gate (scripts/validate-content.ts) and unit tests
+ * (tests/content-validation.test.ts) so they can never drift apart.
+ */
+import { z } from "zod";
+
+export const BLOG_CATEGORIES = [
+  "behavioural-finance",
+  "case-studies",
+  "founder-journey",
+  "wealth-frameworks",
+  "contrarian",
+  "personal-stories",
+  "flagship",
+] as const;
+
+export const blogSchema = z.object({
+  title: z.string().min(1),
+  slug: z.string().min(1),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "date must be YYYY-MM-DD"),
+  category: z.enum(BLOG_CATEGORIES),
+  readTime: z.number().int().positive(),
+  author: z.string().min(1),
+  coverImage: z.string().min(1),
+  excerpt: z.string().max(200),
+  status: z.enum(["published", "draft"]).default("published"),
+  sources: z.array(z.string()).default([]),
+});
+
+export const legendSchema = z.object({
+  name: z.string().min(1),
+  slug: z.string().min(1),
+  era: z.string().min(1),
+  oneLineLesson: z.string().min(1),
+  status: z.enum(["published", "draft"]).default("published"),
+  sources: z.array(z.string()).default([]),
+  coverImage: z.string().min(1),
+});
+
+export interface ContentError {
+  file: string;
+  message: string;
+}
+
+/**
+ * Validates one already-parsed frontmatter object against `schema`.
+ * Pure — no filesystem access — so it's directly unit-testable and
+ * reusable by both the CLI gate and content.ts.
+ */
+export function validateEntry<
+  T extends { slug: string; status: "published" | "draft"; sources: string[] },
+>(
+  fileLabel: string,
+  data: unknown,
+  rawBody: string,
+  expectedSlug: string,
+  schema: z.ZodType<T>,
+  requireSources: boolean,
+): ContentError[] {
+  const errors: ContentError[] = [];
+  const result = schema.safeParse(data);
+
+  if (!result.success) {
+    for (const issue of result.error.issues) {
+      errors.push({ file: fileLabel, message: `${issue.path.join(".")}: ${issue.message}` });
+    }
+    return errors;
+  }
+
+  if (result.data.slug !== expectedSlug) {
+    errors.push({
+      file: fileLabel,
+      message: `slug "${result.data.slug}" does not match filename "${expectedSlug}"`,
+    });
+  }
+
+  if (
+    requireSources &&
+    result.data.status === "published" &&
+    /\d/.test(rawBody) &&
+    result.data.sources.length === 0
+  ) {
+    errors.push({ file: fileLabel, message: "published post contains a figure but sources[] is empty" });
+  }
+
+  return errors;
+}
+
+export function findDuplicateSlugs(slugs: string[]): string[] {
+  const seen = new Set<string>();
+  const duplicates = new Set<string>();
+  for (const slug of slugs) {
+    if (seen.has(slug)) duplicates.add(slug);
+    seen.add(slug);
+  }
+  return [...duplicates];
+}

@@ -69,7 +69,10 @@ export function LumpsumForm() {
         </ResultPanel>
       }
       belowFold={
-        <BlogCta teaser="A lumpsum and a SIP can reach the same destination very differently — what the entry-timing risk actually looks like." />
+        <BlogCta
+          teaser="A lumpsum and a SIP can reach the same destination very differently — what the entry-timing risk actually looks like."
+          href="/learn/blog/lumpsum-vs-sip-entry-timing-risk"
+        />
       }
     />
   );

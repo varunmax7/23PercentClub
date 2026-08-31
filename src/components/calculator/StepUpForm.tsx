@@ -86,7 +86,10 @@ export function StepUpForm() {
             stepUpValue={result.maturityValue}
             advantage={result.advantage}
           />
-          <BlogCta teaser="A 10% step-up costs you nothing you'd miss — here's how to tie it to your annual raise instead of a resolution." />
+          <BlogCta
+            teaser="A 10% step-up costs you nothing you'd miss — here's how to tie it to your annual raise instead of a resolution."
+            href="/learn/blog/tie-sip-stepup-to-your-raise"
+          />
         </div>
       }
     />
