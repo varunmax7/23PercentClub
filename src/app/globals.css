@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+/*
+ * Sapphire Blue design tokens — locked, see README.md §3.1.
+ * Single source of truth: change here, never inline a hex value in a component.
+ */
+:root {
+  --color-sapphire: #0f52ba;
+  --color-bright-blue: #00bfff;
+  --color-ink: #0a1a2f;
+  --color-white: #ffffff;
+  --color-off-white: #f7fafd;
+  --color-slate: #5c6b7a;
+  --color-success-green: #1d9a6c;
+  --color-alert-amber: #c77700;
+  --color-border: #e1e8f0;
+}
+
+@theme inline {
+  --color-sapphire: var(--color-sapphire);
+  --color-bright-blue: var(--color-bright-blue);
+  --color-ink: var(--color-ink);
+  --color-white: var(--color-white);
+  --color-off-white: var(--color-off-white);
+  --color-slate: var(--color-slate);
+  --color-success-green: var(--color-success-green);
+  --color-alert-amber: var(--color-alert-amber);
+  --color-border: var(--color-border);
+
+  --font-display: var(--font-outfit);
+  --font-body: var(--font-inter);
+}
+
+@layer base {
+  body {
+    background: var(--color-white);
+    color: var(--color-ink);
+    font-family: var(--font-body), system-ui, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display), system-ui, sans-serif;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-bright-blue);
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
