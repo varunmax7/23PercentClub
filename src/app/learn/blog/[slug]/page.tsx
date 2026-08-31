@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getAllPosts, getPostBySlug } from "@/lib/content";
+import { articleJsonLd, jsonLdScriptContent } from "@/lib/seo";
 import { Container } from "@/components/layout/Container";
 import { Section } from "@/components/layout/Section";
 import { SourceCitation } from "@/components/ui/SourceCitation";
+import { ReadCompleteTracker } from "@/components/analytics/ReadCompleteTracker";
 
 const CATEGORY_LABEL: Record<string, string> = {
   "behavioural-finance": "Behavioural Finance",
@@ -39,6 +41,12 @@ export async function generateMetadata({
       type: "article",
       publishedTime: post.frontmatter.date,
     },
+    twitter: {
+      card: "summary_large_image",
+      title: post.frontmatter.title,
+      description: post.frontmatter.excerpt,
+      images: [post.frontmatter.coverImage],
+    },
   };
 }
 
@@ -55,6 +63,23 @@ export default async function BlogPostPage({
 
   return (
     <Section>
+      {frontmatter.status === "published" && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: jsonLdScriptContent(
+              articleJsonLd({
+                headline: frontmatter.title,
+                description: frontmatter.excerpt,
+                url: `/learn/blog/${frontmatter.slug}`,
+                datePublished: frontmatter.date,
+                author: frontmatter.author,
+                image: frontmatter.coverImage,
+              }),
+            ),
+          }}
+        />
+      )}
       <Container className="mx-auto max-w-3xl" data-status={frontmatter.status}>
         {frontmatter.status === "draft" && (
           <p className="mb-6 w-fit rounded-full bg-off-white px-4 py-1.5 font-body text-xs font-medium text-slate">
@@ -92,6 +117,8 @@ export default async function BlogPostPage({
             ))}
           </div>
         )}
+
+        <ReadCompleteTracker slug={frontmatter.slug} />
       </Container>
     </Section>
   );

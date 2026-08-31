@@ -10,12 +10,14 @@ import { HowThisIsCalculated } from "./HowThisIsCalculated";
 import { ComparisonCallout } from "./ComparisonCallout";
 import { BlogCta } from "./BlogCta";
 import { GrowthChart } from "@/components/charts/GrowthChart";
+import { useTrackCalculatorUsed } from "@/hooks/useTrackCalculatorUsed";
 
 export function StepUpForm() {
   const [monthlyAmount, setMonthlyAmount] = useState(10000);
   const [annualStepUpPct, setAnnualStepUpPct] = useState(10);
   const [annualReturnPct, setAnnualReturnPct] = useState(12);
   const [years, setYears] = useState(10);
+  const trackUsed = useTrackCalculatorUsed("step-up-sip");
 
   const result = useMemo(
     () => calculateStepUpSip({ monthlyAmount, annualStepUpPct, annualReturnPct, years }),
@@ -28,7 +30,7 @@ export function StepUpForm() {
       title="Step-up SIP Calculator"
       description="Increase your SIP by a fixed percentage every year and see how much more that discipline is worth at maturity."
       inputs={
-        <>
+        <div onChangeCapture={trackUsed} className="contents">
           <InputSlider
             label="Starting monthly investment"
             value={monthlyAmount}
@@ -65,7 +67,7 @@ export function StepUpForm() {
             step={1}
             unit="years"
           />
-        </>
+        </div>
       }
       result={
         <ResultPanel

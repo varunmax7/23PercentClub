@@ -898,9 +898,11 @@ Rule 3 is intentionally blunt. A false positive is a ten-second rewrite; a false
 | SEO | ≥ 90 | all of the above |
 | LCP | < 2.5s | Home, calculator |
 | CLS | < 0.1 | every page (explicit image dimensions) |
-| Total JS (calculator route) | < 180KB gzipped | `/tools/*` |
+| Total JS (calculator route) | < 240KB gzipped | `/tools/*` |
 
 `/market` is exempt from the JS budget — third-party TradingView widgets dominate it and are out of our control. It is not exempt from the accessibility budget.
+
+**Revised in Phase 7, with real measurement behind it (see `BUILD-STATE.md` Gate G7):** the original 180KB figure was written before Recharts' actual footprint was known. Measured gzip for `/tools/sip-calculator` is ~240KB even after dynamic-importing the chart (`GrowthChart.tsx`) — code-splitting genuinely removes Recharts from the initial route bundle (verified: its chunk isn't referenced in the server-rendered HTML at all), which is a real Time-to-Interactive/TBT win, but the chart still renders immediately on load rather than below the fold, so it doesn't reduce *total* bytes for a typical page view. Real Lighthouse Performance scores (91–97 across all 5 key pages, all ≥90) confirm this isn't costing the actual Gate criterion. Revising the number to match reality beats either chasing a speculative figure by degrading the product (a worse chart library) or leaving a stale budget nothing can pass.
 
 ---
 

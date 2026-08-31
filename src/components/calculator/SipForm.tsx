@@ -9,11 +9,13 @@ import { ResultPanel } from "./ResultPanel";
 import { HowThisIsCalculated } from "./HowThisIsCalculated";
 import { BlogCta } from "./BlogCta";
 import { GrowthChart } from "@/components/charts/GrowthChart";
+import { useTrackCalculatorUsed } from "@/hooks/useTrackCalculatorUsed";
 
 export function SipForm() {
   const [monthlyAmount, setMonthlyAmount] = useState(10000);
   const [annualReturnPct, setAnnualReturnPct] = useState(12);
   const [years, setYears] = useState(10);
+  const trackUsed = useTrackCalculatorUsed("sip");
 
   const result = useMemo(
     () => calculateSip({ monthlyAmount, annualReturnPct, years }),
@@ -26,7 +28,7 @@ export function SipForm() {
       title="SIP Calculator"
       description="See what a monthly SIP could be worth at maturity, based on an assumed rate of return you control."
       inputs={
-        <>
+        <div onChangeCapture={trackUsed} className="contents">
           <InputSlider
             label="Monthly investment"
             value={monthlyAmount}
@@ -54,7 +56,7 @@ export function SipForm() {
             step={1}
             unit="years"
           />
-        </>
+        </div>
       }
       result={
         <ResultPanel

@@ -42,3 +42,6 @@ jobs:
 
       - name: E2E + a11y tests
         run: npm run test:e2e
+
+      - name: Lighthouse CI
+        run: npm run lighthouse

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getPublishedPosts } from "@/lib/content";
+import { organizationJsonLd, jsonLdScriptContent } from "@/lib/seo";
 import { Container } from "@/components/layout/Container";
 import { Section } from "@/components/layout/Section";
 import { Card } from "@/components/ui/Card";
@@ -29,6 +30,10 @@ export default function Home() {
 
   return (
     <div className="flex flex-col">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLdScriptContent(organizationJsonLd()) }}
+      />
       <Section tone="muted">
         <Container>
           <HomeHero />

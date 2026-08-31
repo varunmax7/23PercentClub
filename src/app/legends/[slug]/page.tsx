@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getAllLegends, getLegendBySlug } from "@/lib/content";
+import { articleJsonLd, jsonLdScriptContent } from "@/lib/seo";
 import { Container } from "@/components/layout/Container";
 import { Section } from "@/components/layout/Section";
 import { SourceCitation } from "@/components/ui/SourceCitation";
@@ -22,6 +23,18 @@ export async function generateMetadata({
     title: legend.frontmatter.name,
     description: legend.frontmatter.oneLineLesson,
     robots: legend.frontmatter.status === "draft" ? { index: false, follow: false } : undefined,
+    openGraph: {
+      title: legend.frontmatter.name,
+      description: legend.frontmatter.oneLineLesson,
+      images: [legend.frontmatter.coverImage],
+      type: "article",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: legend.frontmatter.name,
+      description: legend.frontmatter.oneLineLesson,
+      images: [legend.frontmatter.coverImage],
+    },
   };
 }
 
@@ -38,6 +51,22 @@ export default async function LegendPage({
 
   return (
     <Section>
+      {frontmatter.status === "published" && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: jsonLdScriptContent(
+              articleJsonLd({
+                headline: frontmatter.name,
+                description: frontmatter.oneLineLesson,
+                url: `/legends/${frontmatter.slug}`,
+                author: "Saikumar",
+                image: frontmatter.coverImage,
+              }),
+            ),
+          }}
+        />
+      )}
       <Container className="mx-auto max-w-3xl" data-status={frontmatter.status}>
         {frontmatter.status === "draft" && (
           <p className="mb-6 w-fit rounded-full bg-off-white px-4 py-1.5 font-body text-xs font-medium text-slate">

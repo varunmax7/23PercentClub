@@ -10,11 +10,13 @@ import { ResultPanel } from "./ResultPanel";
 import { HowThisIsCalculated } from "./HowThisIsCalculated";
 import { BlogCta } from "./BlogCta";
 import { GrowthChart } from "@/components/charts/GrowthChart";
+import { useTrackCalculatorUsed } from "@/hooks/useTrackCalculatorUsed";
 
 export function InflationForm() {
   const [currentAmount, setCurrentAmount] = useState(100000);
   const [inflationPct, setInflationPct] = useState(6);
   const [years, setYears] = useState(10);
+  const trackUsed = useTrackCalculatorUsed("inflation");
 
   const result = useMemo(
     () => calculateInflation({ currentAmount, inflationPct, years }),
@@ -27,7 +29,7 @@ export function InflationForm() {
       title="Inflation Calculator"
       description="See what today's ₹ will actually be able to buy in the future — and why a return that doesn't beat inflation is a real loss."
       inputs={
-        <>
+        <div onChangeCapture={trackUsed} className="contents">
           <InputSlider
             label="Today's amount"
             value={currentAmount}
@@ -55,7 +57,7 @@ export function InflationForm() {
             step={1}
             unit="years"
           />
-        </>
+        </div>
       }
       result={
         <ResultPanel

@@ -9,11 +9,13 @@ import { ResultPanel } from "./ResultPanel";
 import { HowThisIsCalculated } from "./HowThisIsCalculated";
 import { BlogCta } from "./BlogCta";
 import { GrowthChart } from "@/components/charts/GrowthChart";
+import { useTrackCalculatorUsed } from "@/hooks/useTrackCalculatorUsed";
 
 export function LumpsumForm() {
   const [principal, setPrincipal] = useState(100000);
   const [annualReturnPct, setAnnualReturnPct] = useState(12);
   const [years, setYears] = useState(10);
+  const trackUsed = useTrackCalculatorUsed("lumpsum");
 
   const result = useMemo(
     () => calculateLumpsum({ principal, annualReturnPct, years }),
@@ -26,7 +28,7 @@ export function LumpsumForm() {
       title="Lumpsum Calculator"
       description="See what a one-time investment could be worth at maturity, based on an assumed rate of return you control."
       inputs={
-        <>
+        <div onChangeCapture={trackUsed} className="contents">
           <InputSlider
             label="One-time investment"
             value={principal}
@@ -54,7 +56,7 @@ export function LumpsumForm() {
             step={1}
             unit="years"
           />
-        </>
+        </div>
       }
       result={
         <ResultPanel
