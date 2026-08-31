@@ -55,7 +55,7 @@ export default async function BlogPostPage({
 
   return (
     <Section>
-      <Container className="mx-auto max-w-3xl">
+      <Container className="mx-auto max-w-3xl" data-status={frontmatter.status}>
         {frontmatter.status === "draft" && (
           <p className="mb-6 w-fit rounded-full bg-off-white px-4 py-1.5 font-body text-xs font-medium text-slate">
             Draft — preview only

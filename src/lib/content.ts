@@ -3,12 +3,19 @@ import { join, basename } from "node:path";
 import matter from "gray-matter";
 import { compileMDX } from "next-mdx-remote/rsc";
 import type { ReactElement } from "react";
-import type { BlogFrontmatter, BlogCategory, MoneyBasicsFrontmatter, MoneyBasicsTopicSlug } from "./types";
-import { blogSchema, moneyBasicsSchema, MONEY_BASICS_TOPICS } from "./content-schemas";
+import type {
+  BlogFrontmatter,
+  BlogCategory,
+  MoneyBasicsFrontmatter,
+  MoneyBasicsTopicSlug,
+  LegendFrontmatter,
+} from "./types";
+import { blogSchema, moneyBasicsSchema, legendSchema, MONEY_BASICS_TOPICS } from "./content-schemas";
 import { mdxComponents } from "@/components/mdx/MdxComponents";
 
 const BLOG_DIR = join(process.cwd(), "src", "content", "blog");
 const MONEY_BASICS_DIR = join(process.cwd(), "src", "content", "money-basics");
+const LEGENDS_DIR = join(process.cwd(), "src", "content", "legends");
 
 interface RawPost {
   frontmatter: BlogFrontmatter;
@@ -137,6 +144,65 @@ export interface CompiledMoneyBasicsTopic {
 
 export async function getMoneyBasicsTopic(topic: string): Promise<CompiledMoneyBasicsTopic | null> {
   const raw = readAllRawMoneyBasicsTopics().find((t) => t.frontmatter.topic === topic);
+  if (!raw) return null;
+
+  const { content } = await compileMDX({
+    source: raw.body,
+    options: { parseFrontmatter: false },
+    components: mdxComponents,
+  });
+
+  return { frontmatter: raw.frontmatter, content };
+}
+
+// ---- Legends -----------------------------------------------------------
+
+interface RawLegend {
+  frontmatter: LegendFrontmatter;
+  body: string;
+}
+
+function readAllRawLegends(): RawLegend[] {
+  if (!existsSync(LEGENDS_DIR)) return [];
+
+  return readdirSync(LEGENDS_DIR)
+    .filter((entry) => entry.endsWith(".mdx"))
+    .map((entry) => {
+      const raw = readFileSync(join(LEGENDS_DIR, entry), "utf-8");
+      const { data, content } = matter(raw);
+      const result = legendSchema.safeParse(data);
+
+      if (!result.success) {
+        const messages = result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join(", ");
+        throw new Error(`Invalid frontmatter in ${entry}: ${messages}`);
+      }
+
+      const expectedSlug = basename(entry, ".mdx");
+      if (result.data.slug !== expectedSlug) {
+        throw new Error(`${entry}: slug "${result.data.slug}" does not match filename "${expectedSlug}"`);
+      }
+
+      return { frontmatter: result.data, body: content };
+    });
+}
+
+/** All legends regardless of status — used for static params so drafts still render on preview deployments. */
+export function getAllLegends(): LegendFrontmatter[] {
+  return readAllRawLegends().map((l) => l.frontmatter);
+}
+
+/** Published legends only — what the index and sitemap use. Draft legends (e.g. Munger) are excluded. */
+export function getPublishedLegends(): LegendFrontmatter[] {
+  return getAllLegends().filter((l) => l.status === "published");
+}
+
+export interface CompiledLegend {
+  frontmatter: LegendFrontmatter;
+  content: ReactElement;
+}
+
+export async function getLegendBySlug(slug: string): Promise<CompiledLegend | null> {
+  const raw = readAllRawLegends().find((l) => l.frontmatter.slug === slug);
   if (!raw) return null;
 
   const { content } = await compileMDX({
