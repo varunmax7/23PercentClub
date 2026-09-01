@@ -25,3 +25,36 @@ export const BANNED_PHRASES = [
   "multibagger",
   "sure shot",
 ] as const;
+
+/**
+ * Real fund houses, brokers, banks, and insurers — README §5 "no fund,
+ * AMC, broker, or product recommended anywhere." Multi-word or otherwise
+ * unambiguous names only (excludes single ambiguous words like "Axis"
+ * that could collide with ordinary usage — none currently exist in this
+ * content, but the list stays defensive against future additions).
+ * Case-insensitive. Regulators (SEBI, RBI, AMFI, IRDAI, NISM, Income Tax
+ * Department) are correctly cited throughout and are never on this list.
+ */
+export const BANNED_PRODUCT_NAMES = [
+  "hdfc bank",
+  "hdfc mutual fund",
+  "hdfc life",
+  "icici bank",
+  "icici direct",
+  "icici prudential",
+  "sbi mutual fund",
+  "sbi card",
+  "axis bank",
+  "axis mutual fund",
+  "kotak mahindra",
+  "zerodha",
+  "groww",
+  "upstox",
+  "angel one",
+  "policybazaar",
+  "nippon india mutual fund",
+  "franklin templeton",
+  "bajaj allianz",
+  "max life insurance",
+  "lic of india",
+] as const;

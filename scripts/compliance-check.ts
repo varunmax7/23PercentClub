@@ -8,7 +8,7 @@
  */
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
-import { SEBI_DISCLAIMER, CALCULATOR_CAVEAT, BANNED_PHRASES } from "../src/lib/compliance";
+import { SEBI_DISCLAIMER, CALCULATOR_CAVEAT, BANNED_PHRASES, BANNED_PRODUCT_NAMES } from "../src/lib/compliance";
 
 const BUILD_DIR = join(process.cwd(), ".next", "server", "app");
 
@@ -67,6 +67,13 @@ function checkFile(file: string): Violation[] {
   const affiliatePattern = /href="[^"]*(?:[?&](?:ref|affiliate)=|utm_source=partner)[^"]*"/i;
   if (affiliatePattern.test(html)) {
     violations.push({ file: rel, rule: "R5-affiliate-link", detail: "outbound link carries a ref/affiliate/utm_source=partner param" });
+  }
+
+  // Rule 6 — no real fund, AMC, broker, bank, or insurer named anywhere.
+  for (const name of BANNED_PRODUCT_NAMES) {
+    if (lower.includes(name)) {
+      violations.push({ file: rel, rule: "R6-product-named", detail: `matched "${name}"` });
+    }
   }
 
   return violations;

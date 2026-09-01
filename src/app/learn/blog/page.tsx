@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getPostsByCategory, paginatePosts } from "@/lib/content";
-import { BLOG_CATEGORIES } from "@/lib/content-schemas";
+import { BLOG_CATEGORIES, BLOG_CATEGORY_LABEL as CATEGORY_LABEL } from "@/lib/content-schemas";
 import type { BlogCategory } from "@/lib/types";
 import { Container } from "@/components/layout/Container";
 import { Section } from "@/components/layout/Section";
@@ -12,16 +12,6 @@ export const metadata: Metadata = {
   title: "Blog",
   description:
     "Behavioural finance, case studies, wealth frameworks, and the founder journey — education, never advice.",
-};
-
-const CATEGORY_LABEL: Record<BlogCategory, string> = {
-  "behavioural-finance": "Behavioural Finance",
-  "case-studies": "Case Studies",
-  "founder-journey": "Founder Journey",
-  "wealth-frameworks": "Wealth Frameworks",
-  contrarian: "Contrarian",
-  "personal-stories": "Personal Stories",
-  flagship: "Flagship",
 };
 
 function isBlogCategory(value: string | undefined): value is BlogCategory {

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { calculateSip } from "@/lib/calculators";
 import { formatINR } from "@/lib/formatters";
 import { HeartbeatPulse } from "@/components/calculator/HeartbeatPulse";
+import { InputSlider } from "@/components/calculator/InputSlider";
 import { useCountUp } from "@/components/calculator/useCountUp";
 import { ButtonLink } from "@/components/ui/Button";
 import { ComplianceNote } from "@/components/ui/ComplianceNote";
@@ -47,34 +48,18 @@ export function HomeHero() {
 
       <div className="flex-1 rounded-2xl border border-border bg-off-white p-6 sm:p-8">
         <HeartbeatPulse className="mb-4 h-6 w-full" />
-        <label htmlFor="hero-monthly" className="font-body text-sm font-medium text-ink">
+        <p className="font-body text-sm font-medium text-ink">
           If you invested this much every month for 15 years, at an
           illustrative 12% return
-        </label>
-        <div className="mt-3 flex items-center gap-2">
-          <span className="font-body text-sm text-slate">₹</span>
-          <input
-            id="hero-monthly"
-            type="number"
-            inputMode="decimal"
-            value={monthly}
-            min={500}
-            max={200000}
-            step={500}
-            onChange={(e) => setMonthly(Math.min(200000, Math.max(500, Number(e.target.value) || 0)))}
-            className="w-32 rounded-md border border-border bg-white px-2 py-1 font-body text-sm text-ink focus-visible:outline-2 focus-visible:outline-bright-blue"
-          />
-          <span className="font-body text-sm text-slate">/month</span>
-        </div>
-        <input
-          type="range"
-          aria-label="Monthly investment"
+        </p>
+        <InputSlider
+          label="Monthly investment"
           value={monthly}
+          onChange={setMonthly}
           min={500}
           max={200000}
           step={500}
-          onChange={(e) => setMonthly(Number(e.target.value))}
-          className="mt-3 h-2 w-full cursor-pointer appearance-none rounded-full bg-border accent-bright-blue"
+          unit="₹"
         />
         <p className="mt-6 font-body text-sm text-slate">it could become</p>
         <p className="tabular-nums font-display text-4xl font-semibold text-sapphire sm:text-5xl">

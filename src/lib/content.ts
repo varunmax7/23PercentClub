@@ -2,7 +2,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, basename } from "node:path";
 import matter from "gray-matter";
 import { compileMDX } from "next-mdx-remote/rsc";
-import type { ReactElement } from "react";
+import { cache, type ReactElement } from "react";
 import type {
   BlogFrontmatter,
   BlogCategory,
@@ -22,7 +22,11 @@ interface RawPost {
   body: string;
 }
 
-function readAllRawPosts(): RawPost[] {
+// Wrapped in React's cache() so generateMetadata and the page component —
+// which each independently need the full parsed post list to find one
+// slug — read and parse every .mdx file's frontmatter only once per
+// render pass instead of twice, per README §5.2/§6.3's content pipeline.
+const readAllRawPosts = cache((): RawPost[] => {
   if (!existsSync(BLOG_DIR)) return [];
 
   return readdirSync(BLOG_DIR)
@@ -44,7 +48,7 @@ function readAllRawPosts(): RawPost[] {
 
       return { frontmatter: result.data, body: content };
     });
-}
+});
 
 function byDateDesc(a: RawPost, b: RawPost): number {
   return b.frontmatter.date.localeCompare(a.frontmatter.date);
@@ -83,7 +87,10 @@ export interface CompiledPost {
   content: ReactElement;
 }
 
-export async function getPostBySlug(slug: string): Promise<CompiledPost | null> {
+// cache()'d so a route's generateMetadata and page component — which
+// each need this same slug's compiled content — only pay for one
+// compileMDX call per render pass, not two.
+export const getPostBySlug = cache(async (slug: string): Promise<CompiledPost | null> => {
   const raw = readAllRawPosts().find((p) => p.frontmatter.slug === slug);
   if (!raw) return null;
 
@@ -94,7 +101,7 @@ export async function getPostBySlug(slug: string): Promise<CompiledPost | null> 
   });
 
   return { frontmatter: raw.frontmatter, content };
-}
+});
 
 // ---- Money Basics ----------------------------------------------------------
 
@@ -103,7 +110,7 @@ interface RawMoneyBasicsTopic {
   body: string;
 }
 
-function readAllRawMoneyBasicsTopics(): RawMoneyBasicsTopic[] {
+const readAllRawMoneyBasicsTopics = cache((): RawMoneyBasicsTopic[] => {
   if (!existsSync(MONEY_BASICS_DIR)) return [];
 
   return readdirSync(MONEY_BASICS_DIR)
@@ -125,7 +132,7 @@ function readAllRawMoneyBasicsTopics(): RawMoneyBasicsTopic[] {
 
       return { frontmatter: result.data, body: content };
     });
-}
+});
 
 const TOPIC_ORDER: readonly MoneyBasicsTopicSlug[] = MONEY_BASICS_TOPICS;
 
@@ -142,7 +149,7 @@ export interface CompiledMoneyBasicsTopic {
   content: ReactElement;
 }
 
-export async function getMoneyBasicsTopic(topic: string): Promise<CompiledMoneyBasicsTopic | null> {
+export const getMoneyBasicsTopic = cache(async (topic: string): Promise<CompiledMoneyBasicsTopic | null> => {
   const raw = readAllRawMoneyBasicsTopics().find((t) => t.frontmatter.topic === topic);
   if (!raw) return null;
 
@@ -153,7 +160,7 @@ export async function getMoneyBasicsTopic(topic: string): Promise<CompiledMoneyB
   });
 
   return { frontmatter: raw.frontmatter, content };
-}
+});
 
 // ---- Legends -----------------------------------------------------------
 
@@ -162,7 +169,7 @@ interface RawLegend {
   body: string;
 }
 
-function readAllRawLegends(): RawLegend[] {
+const readAllRawLegends = cache((): RawLegend[] => {
   if (!existsSync(LEGENDS_DIR)) return [];
 
   return readdirSync(LEGENDS_DIR)
@@ -184,7 +191,7 @@ function readAllRawLegends(): RawLegend[] {
 
       return { frontmatter: result.data, body: content };
     });
-}
+});
 
 /** All legends regardless of status — used for static params so drafts still render on preview deployments. */
 export function getAllLegends(): LegendFrontmatter[] {
@@ -201,7 +208,7 @@ export interface CompiledLegend {
   content: ReactElement;
 }
 
-export async function getLegendBySlug(slug: string): Promise<CompiledLegend | null> {
+export const getLegendBySlug = cache(async (slug: string): Promise<CompiledLegend | null> => {
   const raw = readAllRawLegends().find((l) => l.frontmatter.slug === slug);
   if (!raw) return null;
 
@@ -212,4 +219,4 @@ export async function getLegendBySlug(slug: string): Promise<CompiledLegend | nu
   });
 
   return { frontmatter: raw.frontmatter, content };
-}
+});

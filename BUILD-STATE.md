@@ -1,7 +1,7 @@
 # BUILD-STATE
 
-Last updated: 2026-08-31 by claude-opus-5 session
-Current phase: 8 can start next (2 still blocked — see Blockers)
+Last updated: 2026-09-01 by claude-sonnet-5 session
+Current phase: 9 (2 still blocked — see Blockers)
 Branch: main
 
 | Phase | Name | Status | Gate passed | Commit |
@@ -13,8 +13,8 @@ Branch: main
 | 4 | Education Blogs | ✅ | 2026-08-31 | c5800d3 |
 | 5 | Money Basics | ✅ | 2026-08-31 | 15c24ce |
 | 6 | Legends, Home, About, Disclosures | ✅ | 2026-08-31 | 94c38a4 |
-| 7 | SEO, Performance, Analytics | ✅ | 2026-08-31 | (this commit) |
-| 8 | Full QA & Compliance Audit | ⬜ | | |
+| 7 | SEO, Performance, Analytics | ✅ | 2026-08-31 | a644812 |
+| 8 | Full QA & Compliance Audit | ✅ | 2026-09-01 | (this commit) |
 | 9 | Deploy & Handoff | ⬜ | | |
 
 ## Blockers
@@ -350,3 +350,136 @@ individual metric.
 
 `npm run verify`, `validate:content`, and `compliance` (29 routes, 0
 violations) all green. 80/80 unit tests, 37/37 e2e + a11y tests.
+
+## Gate G8 result (Full QA & Compliance Audit)
+
+Cross-browser/device testing infrastructure added first (README §8 step 5):
+`playwright.config.ts` gained `webkit` and `firefox` projects (mouse/keyboard,
+scoped to the calculator + a11y-sweep specs) and `ios-safari`/`android-chrome`
+projects (real touch emulation via `devices["iPhone 14"]`/`devices["Pixel 7"]`,
+scoped to `calculators.spec.ts` — "sliders are the highest-risk element on
+touch," not a full sitewide 5x run). New `tests/e2e/a11y-sweep.spec.ts`
+closes the a11y coverage gap on page types no earlier phase's Gate happened
+to touch (About, Disclosures, Learn hub, Tools index, Market, the three
+non-SIP calculators, an individual post/topic/legend page) plus a
+keyboard-only full calculator flow and a chart-data-as-text check. New
+`tests/e2e/console-errors.spec.ts` and `scripts/check-links.ts` crawl every
+sitemap URL plus the two routes the sitemap deliberately excludes (the
+Munger draft preview, `/dev/components`) for zero console errors and zero
+broken links respectively — `check-links.ts` is wired into `audit:full` and
+into CI directly (see below). Rule 6 added to `compliance-check.ts`: a
+`BANNED_PRODUCT_NAMES` denylist (real banks/AMCs/brokers/insurers) alongside
+the existing banned-phrase rule, since README §5/§8 step 2 requires zero
+product-name recommendations, not just zero advice-language.
+
+**Manual sweep, not just automated**: zero `[VERIFY:]` markers anywhere in
+the repo (not just published routes); zero outbound affiliate-pattern links;
+Munger stub still correctly excluded from index/sitemap and `noindex`'d;
+100% branch coverage on `calculators.ts` reconfirmed (`npm run
+test:coverage` — the text reporter omits fully-covered files, which reads
+as calculators.ts "missing" from the report; the underlying
+`coverage-final.json` confirms 45/45 statements, 10/10 branches). **Content
+voice pass** (README §8 step 8) caught one real instance of the
+generic-AI-tell §3.2 explicitly warns against — a mid-sentence bold in
+`src/content/blog/lumpsum-vs-sip-entry-timing-risk.mdx` ("It's **which
+specific risk...**") — removed; no other instances found sitewide, and no
+01/02/03 markers on non-sequential content.
+
+**`/code-review` across the full `phase-0-done..HEAD` diff** (README §8 step
+7, run at `high` effort via a fanned-out multi-agent review — 117 files,
+~11,600 lines): 10 findings, all confirmed against source. Resolved:
+
+- **Real correctness bug, not just style**: `InputSlider.tsx`'s blur-only
+  clamp (added earlier this phase to fix a different bug — see the "digit-
+  by-digit" e2e test) let every keystroke's raw parsed value flow into
+  `onChange` before blur, including out-of-domain ones. `src/lib/calculators.ts`
+  documents that it assumes already-clamped input, so typing e.g. "9999"
+  into a field with `max=50` fed 9999% straight into the live compute engine
+  mid-typing. Fixed properly: the displayed text is now buffered in local
+  state, decoupled from the committed `value` prop, and a keystroke is only
+  committed to the engine once it parses to a number inside `[min, max]` —
+  out-of-range partial values are held back (not clamped up mid-typing, not
+  propagated) until they're valid or the field is blurred. This also fixed,
+  as a consequence rather than a separate patch, two findings the reviewer
+  correctly traced to the same root cause: `ComparisonCallout`'s hardcoded
+  `+` prefix could never actually go negative once the domain is enforced
+  upstream (StepUpForm clamps `annualStepUpPct` to `[0, 30]`), and a stale-
+  DOM-resync bug where clearing a field and then touching a sibling slider
+  silently snapped the cleared field back to its old value (fixed by the
+  same local-buffer decoupling — an unrelated sibling re-render no longer
+  forces this field's display back to the committed prop). Added a
+  regression e2e test (`tests/e2e/calculators.spec.ts`) that types an
+  out-of-domain return percentage digit-by-digit and asserts the result
+  panel reflects only the last in-domain digit reached, never the full
+  out-of-domain string — this is the test that would have caught the
+  original bug.
+- `HomeHero.tsx` had hand-rolled its own number+range input with the exact
+  clamp-on-every-keystroke anti-pattern `InputSlider.tsx` was fixed to
+  remove — same bug, duplicated. Replaced with the actual `<InputSlider>`
+  component (kept the original descriptive sentence as separate text above
+  it, and used `label="Monthly investment"` so the slider's aria-label
+  stays what the existing e2e test — and a real screen-reader user —
+  expects, rather than the full sentence).
+- CI never actually ran the new cross-browser/device suite or the link
+  checker: `.github/workflows/ci.yml` only installed the `chromium`
+  Playwright browser while `playwright.config.ts` now also runs `webkit`
+  and `firefox` projects (the ios-safari/android-chrome projects are device
+  emulations of those two engines, not separate binaries) — the next real
+  CI run would have failed on missing browser executables. Fixed: install
+  all three. `check:links` was folded into `audit:full` but never wired
+  into `ci.yml` directly, so a broken internal link would pass CI green;
+  added an explicit CI step.
+- `scripts/check-links.ts` and `tests/e2e/console-errors.spec.ts`
+  independently hand-duplicated the same seed list, sitemap-`<loc>` regex,
+  and URL-to-path helper — extracted to `scripts/sitemap-seeds.ts`, shared
+  by both.
+- `src/lib/content.ts`'s per-slug lookups (`getPostBySlug`,
+  `getMoneyBasicsTopic`, `getLegendBySlug`) and their underlying
+  read-every-file-and-parse helpers had no memoization, so `generateMetadata`
+  and the page component — which each independently need the same slug —
+  did two full directory reads/parses and two `compileMDX` compilations per
+  route render. Wrapped both layers in React's `cache()`, the standard
+  per-request dedup primitive for this exact pattern, rather than hand-
+  rolling a cache.
+- The `BlogCategory` union type (`src/lib/types.ts`) was hand-duplicated
+  from `content-schemas.ts`'s `BLOG_CATEGORIES` runtime array, and the
+  category→display-label map was independently copy-pasted verbatim into
+  three files (`BlogCard.tsx`, `blog/page.tsx`, `blog/[slug]/page.tsx`) with
+  two of the three typed loosely (`Record<string, string>` with a silent
+  `?? category` fallback) rather than exhaustively. Fixed: `BlogCategory` is
+  now derived (`(typeof BLOG_CATEGORIES)[number]`), and `BLOG_CATEGORY_LABEL`
+  is defined once in `content-schemas.ts` as `Record<BlogCategory, string>`
+  — a category missing its label is now a compile error everywhere, not a
+  silent runtime fallback in two of three places.
+
+**Deferred, with reason**: the `BANNED_PRODUCT_NAMES` denylist (Rule 6,
+added this phase) is a finite list rather than a generalized pattern, unlike
+Rule 5's structural affiliate-link regex — a real, unlisted brand name would
+pass the compliance gate uncaught. Not fixed, because this is inherent to
+what a denylist *is*, not a bug in this implementation: README §9.2 itself
+describes Rule 3 (banned phrases) as "intentionally blunt" for exactly the
+same reason, and there is no generalizable pattern that distinguishes "a
+real financial brand name" from ordinary prose short of an external,
+maintained database this project doesn't have. The list is defensive and
+should be extended as real brand names come up in review, the same way
+Rule 3's phrase list would be.
+
+**Not re-litigated**: the Home-page LCP miss against the `<2.5s` §9.3 target
+flagged (not blocking) at Gate G7 is unchanged in kind at this Gate — still
+comfortably clearing the aggregate ≥90 Lighthouse Performance score that is
+the actual Gate criterion (94 on Home this run, LCP 3.01s) on all 5 key page
+types, all 4 categories. Re-measured fresh rather than assumed stale.
+Genuinely out of scope for a QA/compliance gate to chase further: it would
+mean shipping a materially different hero (the live calculator interaction
+*is* the LCP element and the product's whole thesis — see Gate G6), not a
+QA fix.
+
+`npm run audit:full` (verify, validate:content, compliance, test:e2e,
+check:links, lighthouse) exits 0 end-to-end after all fixes above:
+82/82 unit tests, 121/121 e2e + a11y tests (6 intentional touch-only
+skips on desktop browser projects), 0 compliance violations across 30
+rendered routes, 0 broken links across 29 crawled routes, Lighthouse
+≥90 on all 4 categories for all 5 key page types. `VERIFY-QUEUE.md`
+remains at zero rows. The legacy-site blocker on Phase 2 is unchanged —
+still nothing findable to port, still not blocking any other phase per
+§0.6/§12 R1.

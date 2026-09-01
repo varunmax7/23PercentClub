@@ -38,10 +38,17 @@ jobs:
         run: npm run compliance
 
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
+        # playwright.config.ts (Phase 8) runs chromium, webkit, and firefox
+        # projects — the ios-safari/android-chrome projects are device
+        # emulations of webkit/chromium, not separate engines. No browser
+        # arg installs all three, matching what test:e2e actually launches.
+        run: npx playwright install --with-deps
 
       - name: E2E + a11y tests
         run: npm run test:e2e
+
+      - name: Check links
+        run: npm run check:links
 
       - name: Lighthouse CI
         run: npm run lighthouse

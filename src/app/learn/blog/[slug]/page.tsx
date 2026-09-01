@@ -1,21 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getAllPosts, getPostBySlug } from "@/lib/content";
+import { BLOG_CATEGORY_LABEL as CATEGORY_LABEL } from "@/lib/content-schemas";
 import { articleJsonLd, jsonLdScriptContent } from "@/lib/seo";
 import { Container } from "@/components/layout/Container";
 import { Section } from "@/components/layout/Section";
 import { SourceCitation } from "@/components/ui/SourceCitation";
 import { ReadCompleteTracker } from "@/components/analytics/ReadCompleteTracker";
-
-const CATEGORY_LABEL: Record<string, string> = {
-  "behavioural-finance": "Behavioural Finance",
-  "case-studies": "Case Studies",
-  "founder-journey": "Founder Journey",
-  "wealth-frameworks": "Wealth Frameworks",
-  contrarian: "Contrarian",
-  "personal-stories": "Personal Stories",
-  flagship: "Flagship",
-};
 
 export function generateStaticParams() {
   return getAllPosts().map((post) => ({ slug: post.slug }));
@@ -89,7 +80,7 @@ export default async function BlogPostPage({
 
         <div className="mb-8 flex flex-col gap-3">
           <div className="flex items-center gap-2 font-body text-xs font-medium uppercase tracking-wide text-sapphire">
-            <span>{CATEGORY_LABEL[frontmatter.category] ?? frontmatter.category}</span>
+            <span>{CATEGORY_LABEL[frontmatter.category]}</span>
             <span aria-hidden="true" className="text-border">·</span>
             <time dateTime={frontmatter.date} className="text-slate normal-case tracking-normal">
               {new Date(frontmatter.date).toLocaleDateString("en-IN", {

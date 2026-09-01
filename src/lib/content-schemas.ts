@@ -15,6 +15,21 @@ export const BLOG_CATEGORIES = [
   "flagship",
 ] as const;
 
+// Single source for the category display strings — README §11.1's 7-day
+// rotation is locked, but the label text itself was previously hand-copied
+// into three separate files (BlogCard, the blog index, and the post page),
+// which could silently drift out of sync. `Record<(typeof BLOG_CATEGORIES)[number], string>`
+// makes a missing category a compile error, not a runtime fallback.
+export const BLOG_CATEGORY_LABEL: Record<(typeof BLOG_CATEGORIES)[number], string> = {
+  "behavioural-finance": "Behavioural Finance",
+  "case-studies": "Case Studies",
+  "founder-journey": "Founder Journey",
+  "wealth-frameworks": "Wealth Frameworks",
+  contrarian: "Contrarian",
+  "personal-stories": "Personal Stories",
+  flagship: "Flagship",
+};
+
 export const blogSchema = z.object({
   title: z.string().min(1),
   slug: z.string().min(1),

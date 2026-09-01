@@ -1,15 +1,6 @@
 import Link from "next/link";
 import type { BlogFrontmatter } from "@/lib/types";
-
-const CATEGORY_LABEL: Record<string, string> = {
-  "behavioural-finance": "Behavioural Finance",
-  "case-studies": "Case Studies",
-  "founder-journey": "Founder Journey",
-  "wealth-frameworks": "Wealth Frameworks",
-  contrarian: "Contrarian",
-  "personal-stories": "Personal Stories",
-  flagship: "Flagship",
-};
+import { BLOG_CATEGORY_LABEL as CATEGORY_LABEL } from "@/lib/content-schemas";
 
 /**
  * Leads with category + date as a real editorial eyebrow (the 7-day
@@ -30,7 +21,7 @@ export function BlogCard({
       className="group flex flex-col gap-3 rounded-2xl border border-border bg-white p-6 transition-colors hover:border-sapphire"
     >
       <div className="flex items-center gap-2 font-body text-xs font-medium uppercase tracking-wide text-sapphire">
-        <span>{CATEGORY_LABEL[post.category] ?? post.category}</span>
+        <span>{CATEGORY_LABEL[post.category]}</span>
         <span aria-hidden="true" className="text-border">
           ·
         </span>

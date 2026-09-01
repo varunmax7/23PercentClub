@@ -55,12 +55,12 @@ export const sampleBlogPosts: Pick<
       "The market doesn't punish bad investors as much as bad timing punishes disciplined ones.",
   },
   {
-    title: "The Founder Journey: Building in the Open",
-    slug: "founder-journey-building-in-open",
-    date: "2026-08-19",
+    title: "Building 23% Club in the Open",
+    slug: "building-23-percent-club-in-the-open",
+    date: "2026-08-10",
     category: "founder-journey",
     readTime: 4,
-    excerpt: "What it actually takes to build a financial education platform from Hyderabad.",
+    excerpt: "Why I'm building a financial education platform from Hyderabad instead of another advisory business.",
   },
 ];
 

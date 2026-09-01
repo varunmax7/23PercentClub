@@ -4,6 +4,8 @@
  * imports from here rather than redefining shapes locally.
  */
 
+import type { BLOG_CATEGORIES } from "./content-schemas";
+
 // ---- 6.1 Calculator engine ------------------------------------------------
 
 export interface SipInput {
@@ -110,14 +112,10 @@ export interface MindMap {
 
 // ---- 6.3 MDX frontmatter (mirrors scripts/validate-content.ts schemas) ----
 
-export type BlogCategory =
-  | "behavioural-finance"
-  | "case-studies"
-  | "founder-journey"
-  | "wealth-frameworks"
-  | "contrarian"
-  | "personal-stories"
-  | "flagship";
+// Derived from content-schemas.ts's BLOG_CATEGORIES rather than
+// hand-duplicated — a category added to one and not the other used to be
+// possible without a compile error; now it isn't.
+export type BlogCategory = (typeof BLOG_CATEGORIES)[number];
 
 export type ContentStatus = "published" | "draft";
 
