@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { getPublishedPosts, getMoneyBasicsTopics, getPublishedLegends } from "@/lib/content";
+import { siteUrl } from "@/lib/seo";
 
 /**
  * Excludes /dev/* (never listed here to begin with) and every draft
@@ -7,9 +8,6 @@ import { getPublishedPosts, getMoneyBasicsTopics, getPublishedLegends } from "@/
  * status: draft, so Munger and any future draft post are excluded
  * automatically rather than by a second manual check here.
  */
-function siteUrl(): string {
-  return process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-}
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = siteUrl();

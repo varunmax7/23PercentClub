@@ -3,6 +3,7 @@ import { Outfit, Inter } from "next/font/google";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { PlausibleScript } from "@/components/analytics/PlausibleScript";
+import { siteUrl } from "@/lib/seo";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -22,7 +23,7 @@ const DEFAULT_DESCRIPTION =
   "Financial education and behavioural-investing tools for Indian retail investors. We don't manage your money. We teach you how to manage it.";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  metadataBase: new URL(siteUrl()),
   title: {
     default: "23% Club — Learn, Invest, Grow, Compound",
     template: "%s | 23% Club",

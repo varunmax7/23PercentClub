@@ -7,8 +7,14 @@
  * forcing it here would be misleading structured data, not a shortcut.
  */
 
-function siteUrl(): string {
-  return process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+// Single source for the production site URL, shared by sitemap.ts,
+// robots.ts, and the root layout's metadataBase — `||` rather than `??`
+// deliberately, because Vercel's dashboard submits a blank env var field
+// as an empty string, not an omitted one; `??` only falls back on
+// null/undefined, so `new URL("")` was throwing ERR_INVALID_URL in
+// production when the field was left blank at project-import time.
+export function siteUrl(): string {
+  return process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 }
 
 export function organizationJsonLd() {
